@@ -50,6 +50,7 @@ addopts = "-v --tb=short"
 [tool.coverage.run]
 source = ["src/disk_watch"]
 branch = true
+omit = ["src/disk_watch/__main__.py"]
 
 [tool.coverage.report]
 exclude_lines = [
