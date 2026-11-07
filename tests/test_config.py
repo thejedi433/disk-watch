@@ -1,9 +1,11 @@
 """Tests for disk_watch.config module."""
 
 import json
+import os
 import tempfile
 import time
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -67,6 +69,28 @@ class TestConfig:
         assert len(config.alerts) == 1
         assert config.alerts[0].type == "log"
         assert config.check_interval_seconds == 300
+
+    def test_load_expands_tilde_in_path(self, tmp_path: Path) -> None:
+        """Test '~' in a config path expands to HOME instead of a literal
+        '~' directory in the CWD (README documents ~/... paths)."""
+        home = tmp_path / "home"
+        home.mkdir()
+        (home / "config.toml").write_text(
+            'check_interval_seconds = 60\nstate_file = "~/state.json"\n'
+            "[[monitors]]\npath = \"/\"\nthreshold_percent = 5.0\n"
+        )
+        with patch.dict(os.environ, {"HOME": str(home)}):
+            config = Config.load("~/config.toml")
+        assert config.check_interval_seconds == 60
+
+    def test_save_expands_tilde_in_path(self, tmp_path: Path) -> None:
+        """Test saving to a '~' path writes under HOME, not a '~' dir."""
+        home = tmp_path / "home"
+        with patch.dict(os.environ, {"HOME": str(home)}):
+            config = Config()
+            assert config.save("~/config.toml") is True
+        assert (home / "config.toml").exists()
+        assert not Path("~/config.toml").exists()
 
     def test_load_nonexistent_file(self) -> None:
         """Test loading non-existent file returns default config."""
@@ -289,6 +313,17 @@ class TestMonitorState:
         """Test loading non-existent file returns default state."""
         state = MonitorState.load("/nonexistent/state.json")
         assert state.last_alert_times == {}
+
+    def test_save_and_load_expand_tilde(self, tmp_path: Path) -> None:
+        """Test '~' in state paths resolves under HOME (README documents
+        state_file = "~/..."), not a literal '~' directory."""
+        home = tmp_path / "home"
+        with patch.dict(os.environ, {"HOME": str(home)}):
+            state = MonitorState(last_alert_times={"/": 100.0})
+            assert state.save("~/state.json") is True
+            assert (home / "state.json").exists()
+            loaded = MonitorState.load("~/state.json")
+        assert loaded.last_alert_times == {"/": 100.0}
 
     def test_load_valid_file(self, tmp_path: Path) -> None:
         """Test loading valid state file."""

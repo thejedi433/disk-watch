@@ -98,9 +98,10 @@ class FileAlert:
         """Initialize with log file path.
 
         Args:
-            path: Path to log file
+            path: Path to log file (``~`` is expanded to the user's home
+                directory)
         """
-        self.path = Path(path)
+        self.path = Path(path).expanduser()
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
     def send(self, message: str) -> bool:

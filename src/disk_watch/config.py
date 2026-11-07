@@ -52,7 +52,7 @@ class Config:
         Returns:
             Config instance
         """
-        config_path = Path(path) if path else DEFAULT_CONFIG_PATH
+        config_path = Path(path).expanduser() if path else DEFAULT_CONFIG_PATH
 
         if not config_path.exists():
             return cls()
@@ -115,7 +115,7 @@ class Config:
         Returns:
             True if saved successfully
         """
-        config_path = Path(path) if path else DEFAULT_CONFIG_PATH
+        config_path = Path(path).expanduser() if path else DEFAULT_CONFIG_PATH
 
         try:
             config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -191,7 +191,7 @@ class MonitorState:
         Returns:
             MonitorState instance
         """
-        state_path = Path(path) if path else DEFAULT_STATE_PATH
+        state_path = Path(path).expanduser() if path else DEFAULT_STATE_PATH
 
         if not state_path.exists():
             return cls()
@@ -215,7 +215,7 @@ class MonitorState:
         Returns:
             True if saved successfully
         """
-        state_path = Path(path) if path else DEFAULT_STATE_PATH
+        state_path = Path(path).expanduser() if path else DEFAULT_STATE_PATH
 
         try:
             state_path.parent.mkdir(parents=True, exist_ok=True)

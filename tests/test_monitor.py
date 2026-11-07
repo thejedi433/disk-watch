@@ -41,6 +41,12 @@ class TestDiskUsage:
         with pytest.raises(FileNotFoundError, match="Path does not exist"):
             DiskUsage.from_path("/nonexistent/path/xyz123")
 
+    def test_from_path_expands_tilde(self) -> None:
+        """Test '~' in a monitored path expands to HOME."""
+        expected = str(Path("~").expanduser().resolve())
+        usage = DiskUsage.from_path("~")
+        assert usage.path == expected
+
     def test_is_below_threshold_true(self, tmp_path: Path) -> None:
         """Test is_below_threshold returns True when free < threshold."""
         usage = DiskUsage.from_path(tmp_path)

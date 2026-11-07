@@ -1,6 +1,7 @@
 """Tests for disk_watch.alerts module."""
 
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime
@@ -140,6 +141,20 @@ class TestFileAlert:
         handler.send("Test message")
 
         assert log_file.exists()
+
+    def test_tilde_path_expands_to_home(self, tmp_path: Path) -> None:
+        """Test '~' in a file path expands to HOME, not a literal '~' dir.
+
+        Regression: the README documents '~/...' paths; without expanduser
+        the tool created a directory literally named '~' in the CWD.
+        """
+        with patch.dict(os.environ, {"HOME": str(tmp_path)}):
+            handler = FileAlert("~/alerts.log")
+            assert handler.path == tmp_path / "alerts.log"
+            assert handler.send("Test message") is True
+
+        assert (tmp_path / "alerts.log").exists()
+        assert not (Path("~/alerts.log")).exists()
 
     def test_send_returns_true_on_success(self, tmp_path: Path) -> None:
         """Test FileAlert returns True on success."""

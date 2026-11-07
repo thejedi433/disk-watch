@@ -30,7 +30,7 @@ class DiskUsage:
         Raises:
             FileNotFoundError: If path doesn't exist
         """
-        p = Path(path)
+        p = Path(path).expanduser()
         if not p.exists():
             raise FileNotFoundError(f"Path does not exist: {path}")
 
