@@ -7,7 +7,19 @@ on:
     branches: [main]
 
 jobs:
+  lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Verify uv.lock matches pyproject.toml
+        run: uv lock --check
+
   test:
+    needs: lock
     runs-on: ubuntu-latest
     strategy:
       matrix:
